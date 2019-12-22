@@ -45,8 +45,8 @@ Return_Patient <- trajectory("return patients' path") %>%
   ## add a consultation activity
   seize("consultant", 1) %>%
   timeout(function() rnorm(1, 3)) %>%
-  release("consultant", 1) %>%
   release("doctor", 1) %>%
+  release("consultant", 1) %>%
   ## add a planning activity
   seize("administration", 1) %>%
   timeout(function() rnorm(1, 1)) %>%
@@ -78,15 +78,17 @@ envs <- mclapply(1:1000, function(i) {
     add_resource("consultant", 1) %>%
     add_resource("administration", 1) %>%
     add_generator("return", Return_Patient, from_to(c(0,0,0),runlength,
-                                              dist = function () {return_doc_time}, arrive = TRUE, every = runlength), priority = 0) %>%
+                                              dist = function () {return_doc_time}, arrive = TRUE,
+                                              every = runlength), priority = 0) %>%
     add_generator("new", New_Patient, from_to(c(0,0,0),runlength,
-                                              dist = function () {new_doc_time}, arrive = TRUE, every = runlength), priority = 0) %>%
+                                              dist = function () {new_doc_time}, arrive = TRUE,
+                                              every = runlength), priority = 0) %>%
     run(runlength) %>%
     wrap()
 })
 
 envs %>%
-  get_mon_arrivals()
+  get_mon_arrivals(per_resource = TRUE)
 
 result <- envs %>% 
   get_mon_arrivals() %>%
