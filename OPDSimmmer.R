@@ -19,11 +19,11 @@ dressing_prirority <- 10
 OPD_Clinic_Time <- 160
 new_patient_first_slot <- 3
 return_patient_first_slot <- 3
-number_of_trials <- 100
+number_of_trials <- 200
 dressing_dr_review_prob <- function() runif(1) < 0.25
 #Resources
 Doctors <- 4
-Nurses <- 2
+Nurses <- 1
 Consultants <- 1
 Administrators <- 1
 
@@ -99,7 +99,7 @@ envs <- mclapply(1:number_of_trials, function(i) {
                                               dist = function () {new_doc_time}, arrive = TRUE,
                                               every = OPD_Clinic_Time), priority = new_priority) %>%
     add_generator("dressing", Dressing_Patient, from_to(rep(0,return_patient_first_slot),OPD_Clinic_Time,
-                                                    dist = function () {return_doc_time}, arrive = TRUE,
+                                                    dist = function () {dressing_time}, arrive = TRUE,
                                                     every = OPD_Clinic_Time), priority = dressing_prirority) %>%
     run(OPD_Clinic_Time) %>%
     wrap()
@@ -107,8 +107,8 @@ envs <- mclapply(1:number_of_trials, function(i) {
 
 
 #View Patient Pathway
-envs %>%
-  get_mon_arrivals(per_resource = TRUE) #%>%  view()
+#envs %>%
+#  get_mon_arrivals(per_resource = TRUE) %>%  view()
 
 
 #Save the Results of How Many Patients were seen
@@ -122,7 +122,12 @@ result <- envs %>%
   pivot_wider(id_cols = replication, names_from = Patient_Type , values_from = n)
 
 result %>%
+  ungroup() %>%
+  select(-replication) %>%
   summary()
 
 
 plot(get_mon_resources(envs), metric = "utilization")
+
+ggplot(result) +
+  geom_histogram(aes(New), binwidth = 1)
