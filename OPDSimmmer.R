@@ -2,6 +2,7 @@ library(simmer)
 library(simmer.plot)
 library(parallel)
 library(tidyverse)
+library(scales)
 
 ##OPD Parameters
 
@@ -19,7 +20,7 @@ dressing_prirority <- 10
 OPD_Clinic_Time <- 160
 new_patient_first_slot <- 3
 return_patient_first_slot <- 3
-number_of_trials <- 200
+number_of_trials <- 1000
 dressing_dr_review_prob <- function() runif(1) < 0.25
 #Resources
 Doctors <- 4
@@ -129,5 +130,11 @@ result %>%
 
 plot(get_mon_resources(envs), metric = "utilization")
 
-ggplot(result) +
-  geom_histogram(aes(New), binwidth = 1)
+ggplot(result, aes(Return, New)) +
+  geom_jitter()
+
+
+result %>%
+  filter(New == 17 && Return == 32) %>%
+  count(replication)
+
